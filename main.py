@@ -33,7 +33,7 @@ def fetch_swiftly_products():
         print("❌ SCRAPERAPI_KEY manquante dans Render")
         return []
         
-    proxy_url = f"http://api.scraperapi.com?api_key={SCRAPERAPI_KEY}&url={SWIFTLY_URL}&render=true"
+    proxy_url = f"http://api.scraperapi.com?api_key={SCRAPERAPI_KEY}&url={SWIFTLY_URL}&render=true&country_code=us"
     try:
         response = requests.get(proxy_url, timeout=60)
         if response.status_code != 200:
