@@ -3,8 +3,8 @@ import threading
 import time
 import os
 import re
+import requests
 from http.server import HTTPServer, BaseHTTPRequestHandler
-from curl_cffi import requests
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
@@ -24,25 +24,18 @@ threading.Thread(target=run_dummy_server, daemon=True).start()
 
 SELLAUTH_API_KEY = os.environ.get("SELLAUTH_API_KEY")
 SELLAUTH_SHOP_ID = os.environ.get("SELLAUTH_SHOP_ID")
+SCRAPERAPI_KEY = os.environ.get("SCRAPERAPI_KEY")
 SWIFTLY_URL = "https://swiftly.cx/products"
-CHECK_INTERVAL = 60
+CHECK_INTERVAL = 300
 
 def fetch_swiftly_products():
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Accept-Language": "fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Sec-Ch-Ua": '"Not-A.Brand";v="99", "Chromium";v="124", "Google Chrome";v="124"',
-        "Sec-Ch-Ua-Mobile": "?0",
-        "Sec-Ch-Ua-Platform": '"Windows"',
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Upgrade-Insecure-Requests": "1"
-    }
+    if not SCRAPERAPI_KEY:
+        print("❌ SCRAPERAPI_KEY manquante dans Render")
+        return []
+        
+    proxy_url = f"http://api.scraperapi.com?api_key={SCRAPERAPI_KEY}&url={SWIFTLY_URL}&render=true"
     try:
-        response = requests.get(SWIFTLY_URL, headers=headers, impersonate="chrome124", timeout=15)
+        response = requests.get(proxy_url, timeout=60)
         if response.status_code != 200:
             print(f"❌ Erreur Swiftly HTTP {response.status_code}")
             return []
@@ -59,7 +52,7 @@ def fetch_swiftly_products():
                 })
         return products
     except Exception as e:
-        print(f"⚠️ Erreur lors du scraping : {e}")
+        print(f"⚠️ Erreur scraping : {e}")
         return []
 
 def push_to_sellauth(product):
