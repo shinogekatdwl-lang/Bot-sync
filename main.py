@@ -1,3 +1,4 @@
+import sys; sys.stdout.reconfigure(line_buffering=True)
 import threading
 import time
 import os
@@ -23,7 +24,7 @@ threading.Thread(target=run_dummy_server, daemon=True).start()
 
 SELLAUTH_API_KEY = os.environ.get("SELLAUTH_API_KEY")
 SELLAUTH_SHOP_ID = os.environ.get("SELLAUTH_SHOP_ID")
-SWIFTVLY_URL = "https://swiftly.cx/products"
+SWIFTLY_URL = "https://swiftly.cx/products"
 CHECK_INTERVAL = 60
 
 def fetch_swiftly_products():
@@ -32,7 +33,7 @@ def fetch_swiftly_products():
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
     }
     try:
-        response = requests.get(SWIFTVLY_URL, headers=headers, impersonate="chrome110", timeout=15)
+        response = requests.get(SWIFTLY_URL, headers=headers, impersonate="chrome110", timeout=15)
         if response.status_code != 200:
             print(f"❌ Erreur Swiftly HTTP {response.status_code}")
             return []
@@ -83,6 +84,7 @@ def push_to_sellauth(product):
 if __name__ == "__main__":
     while True:
         products = fetch_swiftly_products()
+        print(f"🔎 Produits trouvés : {len(products)}")
         for product in products:
             push_to_sellauth(product)
         time.sleep(CHECK_INTERVAL)
